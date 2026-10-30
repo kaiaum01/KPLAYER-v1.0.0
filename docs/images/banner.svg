@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="380" viewBox="0 0 1280 380">
+<rect width="1280" height="380" rx="24" fill="#121212"/>
+<rect x="64" y="98" width="164" height="164" rx="42" fill="#1db954"/>
+<text x="89" y="219" fill="#121212" font-family="Arial,sans-serif" font-weight="700" font-size="109">K</text>
+<path d="M169 159 L204 181 L169 203Z" fill="#121212"/>
+<text x="282" y="166" fill="#ffffff" font-family="Arial,sans-serif" font-size="66" font-weight="700">KPlayer</text>
+<rect x="570" y="113" width="138" height="58" rx="16" fill="#24392c"/>
+<text x="594" y="152" fill="#1db954" font-family="Arial,sans-serif" font-size="31" font-weight="700">BETA</text>
+<text x="284" y="218" fill="#b3b3b3" font-family="Arial,sans-serif" font-size="26">Audio &amp; video, wherever you go.</text>
+<text x="284" y="274" fill="#1db954" font-family="Arial,sans-serif" font-size="22">R36S   /   dArkOS   /   PortMaster</text>
+<text x="284" y="312" fill="#8c8c8c" font-family="Arial,sans-serif" font-size="18">Native C + SDL2 + libVLC    ·    PT-BR / EN / ES</text>
+</svg>

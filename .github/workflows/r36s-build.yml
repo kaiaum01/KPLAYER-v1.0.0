@@ -1,0 +1,48 @@
+name: Compilar KPlayer R36S
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'source/**'
+      - 'ports/**'
+      - 'tools/package_release.py'
+      - '.github/workflows/r36s-build.yml'
+  pull_request:
+    paths:
+      - 'source/**'
+      - 'ports/**'
+      - 'tools/package_release.py'
+      - '.github/workflows/r36s-build.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-r36s:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar compilador ARM64
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+      - name: Compilar frontend para R36S
+        run: |
+          aarch64-linux-gnu-gcc -O2 -std=gnu11 -Wall -Wextra -Werror \
+            -I source/include source/kplayer.c -o ports/kplayer/kplayer \
+            -ldl -lpthread -lm
+          file ports/kplayer/kplayer
+      - name: Criar pacote instalável
+        run: python3 tools/package_release.py
+      - name: Disponibilizar pacote e checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: KPlayer-R36S-${{ github.run_number }}
+          path: |
+            releases/KPlayer-v1.0.0-R36S.zip
+            releases/KPlayer-v1.0.0-R36S.zip.sha256
+          if-no-files-found: error
+          retention-days: 30

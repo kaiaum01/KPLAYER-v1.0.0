@@ -1,0 +1,12 @@
+/.gradle/
+/.idea/
+/local.properties
+/**/build/
+*.iml
+/ports/kplayer/kplayer
+/ports/kplayer/log.txt
+/ports/kplayer/settings.cfg
+/ports/kplayer/settings.tmp
+/ports/kplayer/preferences.cfg
+/ports/kplayer/favorites.cfg
+/output/
