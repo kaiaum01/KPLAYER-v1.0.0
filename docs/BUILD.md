@@ -10,9 +10,11 @@ This workflow and the new 1.0.0 binary have not been tested on R36S.
 The source archive intentionally excludes the older frontend binary and old
 prebuilt releases; do not run the packager until the new frontend is built.
 
-Execute o workflow no GitHub e baixe o artefato após a compilação. Para
-publicar uma release, anexe manualmente o ZIP e o checksum do artefato; o
-workflow não publica releases automaticamente.
+Execute esse workflow no GitHub e baixe o artefato após a compilação. Ele não
+publica releases. Um segundo workflow, **KPlayer - Compilar e preparar release
+R36S**, é acionado por tags numéricas como `v1.0.1` e prepara um rascunho com
+ZIP e checksum; o mantenedor precisa conferir e publicar a release. Veja
+[o guia de publicação](../PUBLICACAO-1.0.0.md).
 
 ## Build the ARM64 application and VLC core
 
@@ -57,6 +59,10 @@ Requires a host C compiler, SDL2 runtime and Python Pillow. The renderer uses th
 ```bash
 python3 tools/package_release.py
 ```
+
+To package a specific numeric version, set `KPLAYER_VERSION`, for example
+`KPLAYER_VERSION=v1.0.1 python3 tools/package_release.py`. Compile the matching
+ARM64 frontend first. The version is included in the install tree and manifest.
 
 Only the runtime tree, install notes, license and source-location notice are included in the install ZIP. Source is in this repository, including the original VLC archive and its patch. The release asset and its SHA-256 checksum are written to `releases/`.
 

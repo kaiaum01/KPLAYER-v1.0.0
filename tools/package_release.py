@@ -3,16 +3,20 @@
 from pathlib import Path
 import hashlib
 import json
+import os
+import re
 import zipfile
 
 BASE = Path(__file__).resolve().parents[1]
-VERSION = "1.0.0"
+VERSION = os.environ.get("KPLAYER_VERSION", "1.0.0").removeprefix("v")
+if not re.fullmatch(r"\d+\.\d+\.\d+", VERSION):
+    raise SystemExit("KPLAYER_VERSION must be X.Y.Z or vX.Y.Z")
 release = BASE / "releases"
 release.mkdir(exist_ok=True)
 archive = release / f"KPlayer-v{VERSION}-R36S.zip"
 runtime = BASE / "ports" / "kplayer"
 files = [
-    BASE / "ports" / "KPlayer (Beta).sh",
+    BASE / "ports" / "KPlayer.sh",
     runtime / "kplayer", runtime / "kplayer.gptk",
     runtime / "updater.py",
     runtime / "fonts" / "Interface.ttf", runtime / "fonts" / "Bold.ttf",
@@ -36,6 +40,7 @@ with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as out
         out.write(path, path.relative_to(BASE / "ports").as_posix())
     out.write(BASE / "docs" / "INSTALL.md", "README_INSTALL.md")
     out.write(BASE / "LICENSE", "LICENSE")
+    out.writestr("kplayer/installed-version.txt", VERSION + "\n")
     out.writestr("kplayer/update-manifest.json", json.dumps({
         "schema": 1, "version": VERSION,
         "update_files": ["kplayer/kplayer", "kplayer/kplayer.gptk",
@@ -43,7 +48,7 @@ with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as out
                          "kplayer/fonts/Interface.ttf", "kplayer/fonts/Bold.ttf"],
     }))
     out.writestr("SOURCE.txt", (
-        "KPlayer v1.0.0 — corresponding source\n"
+        f"KPlayer v{VERSION} — corresponding source\n"
         "The source is distributed in this release's repository/tag.\n"
         "Download the repository source archive for the same tag.\n"
         "It includes source/, tests/, upstream/vlc-3.0.23.tar.xz,\n"

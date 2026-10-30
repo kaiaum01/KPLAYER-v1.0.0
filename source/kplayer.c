@@ -687,6 +687,66 @@ static void update_start(void) {
     pthread_mutex_unlock(&update_mutex);
   }
 }
+/* Runs before the main menu; failed/offline checks never prevent startup. */
+static bool startup_update(void) {
+  bool installing = false, yes = false;
+  update_start();
+  for (;;) {
+    bool busy;
+    int status;
+    char tag[sizeof(update_tag)];
+    pthread_mutex_lock(&update_mutex);
+    busy = update_busy;
+    status = update_status_code;
+    snprintf(tag, sizeof(tag), "%s", update_tag);
+    pthread_mutex_unlock(&update_mutex);
+    if (!busy && !installing && status != 1) return false;
+    if (!busy && installing && status == 3) return true;
+
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) {
+      if (e.type == SDL_QUIT && !busy) return false;
+      if (e.type != SDL_KEYDOWN || e.key.repeat || busy) continue;
+      SDL_Keycode k = e.key.keysym.sym;
+      if (installing) {
+        if (k == SDLK_RETURN || k == SDLK_BACKSPACE || k == SDLK_ESCAPE)
+          return false;
+      } else if (k == SDLK_LEFT || k == SDLK_RIGHT || k == SDLK_UP || k == SDLK_DOWN) {
+        yes = !yes;
+      } else if (k == SDLK_BACKSPACE || k == SDLK_ESCAPE) {
+        return false;
+      } else if (k == SDLK_RETURN) {
+        if (!yes) return false;
+        installing = true;
+        update_start();
+      }
+    }
+    color(bg);
+    SDL_RenderClear(renderer);
+    label("K PLAYER", 48, 48, 30, accent, 544);
+    rounded(42, 120, 556, 240, 14, panel);
+    if (busy) {
+      label(tr(installing ? "Baixando e instalando..." : "Procurando atualizações..."), 68, 192, 24, textc, 505);
+      label(tr("Aguarde..."), 68, 245, 18, muted, 500);
+    } else if (installing) {
+      label(tr("Não foi possível atualizar"), 68, 175, 24, textc, 500);
+      label(tr("Erro; consulte log.txt"), 68, 225, 18, muted, 500);
+      label(tr("B Continuar"), 68, 280, 18, accent, 500);
+    } else {
+      char line[100];
+      snprintf(line, sizeof(line), "%s: %s", tr("Nova versão disponível"), tag);
+      label(line, 68, 150, 22, accent, 500);
+      label(tr("Deseja atualizar agora?"), 68, 200, 22, textc, 500);
+      rounded(160, 260, 140, 45, 8, yes ? accent : elevated);
+      rounded(340, 260, 140, 45, 8, !yes ? accent : elevated);
+      label(tr("Sim"), 205, 272, 20, yes ? bg : textc, 80);
+      label(tr("Não"), 385, 272, 20, !yes ? bg : textc, 80);
+      label(tr("Esquerda/Direita: escolher    B: confirmar"), 62, 390, 17, muted, 520);
+    }
+    SDL_RenderPresent(renderer);
+    SDL_Delay(33);
+  }
+}
 static void track_label(bool subtitle, char *out, size_t n) {
   int id =
       subtitle ? libvlc_video_get_spu(player) : libvlc_audio_get_track(player);
@@ -1284,11 +1344,15 @@ int main(int argc, char **argv) {
   mode = onboarding_done ? 3 : 5;
   load_settings();
   load_favorites();
-  network_location_enabled = true;
-  network_location_start();
-  mkdir(root, 0755);
-  snprintf(folder, sizeof(folder), "%s", root);
-  scan();
+  bool restart_after_update = startup_update();
+  if (restart_after_update) running = 0;
+  else {
+    network_location_enabled = true;
+    network_location_start();
+    mkdir(root, 0755);
+    snprintf(folder, sizeof(folder), "%s", root);
+    scan();
+  }
   while (running) {
     uint32_t frame = SDL_GetTicks();
     SDL_Event e;
@@ -1368,5 +1432,5 @@ int main(int argc, char **argv) {
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
   SDL_Quit();
-  return 0;
+  return restart_after_update ? 42 : 0;
 }

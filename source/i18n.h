@@ -7,6 +7,15 @@ typedef struct {
   const char *pt, *en, *es;
 } Translation;
 static const Translation translations[] = {
+    {"Procurando atualizações...", "Checking for updates...", "Buscando actualizaciones..."},
+    {"Nova versão disponível", "New version available", "Nueva versión disponible"},
+    {"Deseja atualizar agora?", "Update now?", "¿Actualizar ahora?"},
+    {"Sim", "Yes", "Sí"},
+    {"Não", "No", "No"},
+    {"Baixando e instalando...", "Downloading and installing...", "Descargando e instalando..."},
+    {"Não foi possível atualizar", "Update failed", "No se pudo actualizar"},
+    {"B Continuar", "B Continue", "B Continuar"},
+    {"Esquerda/Direita: escolher    B: confirmar", "Left/Right: choose    B: confirm", "Izquierda/Derecha: elegir    B: confirmar"},
     {"Atualização", "Update", "Actualización"},
     {"Aguarde...", "Please wait...", "Espere..."},
     {"B Atualizar", "B Install", "B Actualizar"},
