@@ -1,0 +1,50 @@
+name: KPlayer 1.0.0 - Compilar e preparar release R36S
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v1.0.0'
+
+permissions:
+  contents: read
+
+jobs:
+  build-r36s:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar compilador ARM64
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu file
+      - name: Compilar KPlayer
+        run: |
+          aarch64-linux-gnu-gcc -O2 -std=gnu11 -Wall -Wextra -Werror \
+            -I source/include source/kplayer.c -o ports/kplayer/kplayer \
+            -ldl -lpthread -lm
+          file ports/kplayer/kplayer
+      - name: Gerar pacote e checksum
+        run: python3 tools/package_release.py
+      - name: Disponibilizar artefato para teste
+        uses: actions/upload-artifact@v4
+        with:
+          name: KPlayer-v1.0.0-R36S
+          path: |
+            releases/KPlayer-v1.0.0-R36S.zip
+            releases/KPlayer-v1.0.0-R36S.zip.sha256
+          if-no-files-found: error
+      - name: Preparar rascunho da release
+        if: github.event_name == 'push' && github.ref == 'refs/tags/v1.0.0'
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          name: KPlayer v1.0.0
+          body_path: NOTAS-RELEASE-1.0.0.md
+          fail_on_unmatched_files: true
+          files: |
+            releases/KPlayer-v1.0.0-R36S.zip
+            releases/KPlayer-v1.0.0-R36S.zip.sha256
