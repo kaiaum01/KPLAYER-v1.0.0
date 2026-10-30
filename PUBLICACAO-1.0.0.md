@@ -2,7 +2,7 @@
 
 Este pacote é a árvore de código-fonte, sem o executável ARM antigo. A versão
 1.0.0 deve ser tratada como candidata até compilar e testar no R36S. O
-atualizador automático não está implementado.
+atualizador é experimental e deve ser testado conforme ATUALIZADOR-EXPERIMENTAL.md.
 
 1. Extraia o ZIP. No GitHub Desktop, crie um repositório local novo para o
    KPlayer, sem colocar a pasta extraída inteira dentro de outra pasta do
@@ -23,4 +23,4 @@ atualizador automático não está implementado.
 
 GitHub Desktop precisa de um repositório Git real criado/clonado no computador:
 um ZIP extraído sozinho não possui o histórico .git. A versão Android e o
-auto-update não fazem parte da versão final R36S.
+auto-update experimental precisa de uma release posterior para teste.

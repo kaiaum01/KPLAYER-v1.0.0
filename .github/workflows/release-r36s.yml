@@ -21,6 +21,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu file
+      - name: Testar verificação e instalação simulada
+        run: python3 -m unittest discover -s tests -p test_updater.py -v
       - name: Compilar KPlayer
         run: |
           aarch64-linux-gnu-gcc -O2 -std=gnu11 -Wall -Wextra -Werror \

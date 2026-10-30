@@ -7,7 +7,8 @@ Designed for 640 × 480 physical controls on dArkOS / PortMaster.
 
 > **Release candidate:** the radio fix was reported working on R36S, but the new
 > themes, loading indicator and v1.0.0 ARM64 build require device testing.
-> Automatic updates are **not implemented**. Android code is experimental
+> GitHub updates are experimental, require Python 3 and have not been tested
+> on R36S; see [updater limitations](ATUALIZADOR-EXPERIMENTAL.md). Android code is experimental
 > and not included in the R36S release.
 
 ## Screenshots

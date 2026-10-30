@@ -379,6 +379,8 @@ int main(void) {
   key(SDLK_DOWN, false);
   assert(option == 9);
   key(SDLK_DOWN, false);
+  assert(option == 10);
+  key(SDLK_DOWN, false);
   assert(option == 0);
   option = 8;
   running = 1;

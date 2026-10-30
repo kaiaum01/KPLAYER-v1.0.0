@@ -630,6 +630,63 @@ static void save_settings(void);
 #include "radio.h"
 // First-run screens use the skin drawing helpers.
 #include "onboarding.h"
+/* Update operations run off the SDL thread. Output is one fixed status line. */
+static pthread_mutex_t update_mutex = PTHREAD_MUTEX_INITIALIZER;
+static bool update_busy = false;
+static int update_status_code = 0; /* 0 idle, 1 new, 2 latest, 3 done, 4 error */
+static char update_tag[32];
+static void *update_worker(void *argument) {
+  bool installing = (intptr_t)argument != 0;
+  char cmd[160], tag[32];
+  pthread_mutex_lock(&update_mutex);
+  snprintf(tag, sizeof(tag), "%s", update_tag);
+  pthread_mutex_unlock(&update_mutex);
+  if (installing)
+    snprintf(cmd, sizeof(cmd), "python3 ./updater.py install %.30s 2>>log.txt", tag);
+  else
+    snprintf(cmd, sizeof(cmd), "python3 ./updater.py check 2>>log.txt");
+  FILE *f = popen(cmd, "r");
+  char line[80] = {0};
+  if (f && !fgets(line, sizeof(line), f)) line[0] = 0;
+  int status = f ? pclose(f) : -1;
+  pthread_mutex_lock(&update_mutex);
+  if (status == 0 && !strncmp(line, "NEW v", 5)) {
+    size_t n = strcspn(line + 4, "\r\n");
+    bool valid = n > 1 && n < sizeof(update_tag);
+    for (size_t i = 1; valid && i < n; i++)
+      if (!isdigit((unsigned char)line[4 + i]) && line[4 + i] != '.') valid = false;
+    if (valid) {
+      memcpy(update_tag, line + 4, n); update_tag[n] = 0;
+      update_status_code = 1;
+    } else update_status_code = 4;
+  } else if (status == 0 && !strncmp(line, "LATEST", 6)) update_status_code = 2;
+  else if (status == 0 && !strncmp(line, "OK ", 3)) update_status_code = 3;
+  else update_status_code = 4;
+  update_busy = false;
+  pthread_mutex_unlock(&update_mutex);
+  return NULL;
+}
+static bool update_is_busy(void) {
+  pthread_mutex_lock(&update_mutex);
+  bool busy = update_busy;
+  pthread_mutex_unlock(&update_mutex);
+  return busy;
+}
+static void update_start(void) {
+  pthread_mutex_lock(&update_mutex);
+  if (update_busy) { pthread_mutex_unlock(&update_mutex); return; }
+  bool install = update_status_code == 1;
+  update_busy = true;
+  pthread_mutex_unlock(&update_mutex);
+  pthread_t worker;
+  if (pthread_create(&worker, NULL, update_worker, (void *)(intptr_t)install) == 0)
+    pthread_detach(worker);
+  else {
+    pthread_mutex_lock(&update_mutex);
+    update_busy = false; update_status_code = 4;
+    pthread_mutex_unlock(&update_mutex);
+  }
+}
 static void track_label(bool subtitle, char *out, size_t n) {
   int id =
       subtitle ? libvlc_video_get_spu(player) : libvlc_audio_get_track(player);
@@ -657,10 +714,10 @@ static void draw_options(void) {
       tr("Velocidade"),    tr("Formato da imagem"), tr("Faixa de áudio"),
       tr("Legendas"),      tr("Repetir mídia"),     tr("Idioma"),
       tr("Termos de uso"), tr("Favoritar faixa"),   tr("Sair do KPlayer"),
-      tr("Tema")};
-  for (int i = 0; i < 10; i++) {
-    int y = 90 + i * 31;
-    rounded(24, y, 592, 29, 8, i == option ? elevated : panel);
+      tr("Tema"), tr("Atualização")};
+  for (int i = 0; i < 11; i++) {
+    int y = 85 + i * 29;
+    rounded(24, y, 592, 27, 8, i == option ? elevated : panel);
     label(names[i], 40, y + 8, 18, i == option ? accent : textc, 280);
     char value[256];
     switch (i) {
@@ -698,6 +755,16 @@ static void draw_options(void) {
       break;
     case 9:
       snprintf(value, sizeof(value), "%s", tr(themes[theme_index].name));
+      break;
+    case 10:
+      pthread_mutex_lock(&update_mutex);
+      if (update_busy) snprintf(value, sizeof(value), "%s", tr("Aguarde..."));
+      else if (update_status_code == 1) snprintf(value, sizeof(value), "%s: %s", update_tag, tr("B Atualizar"));
+      else if (update_status_code == 2) snprintf(value, sizeof(value), "%s", tr("Versão atual"));
+      else if (update_status_code == 3) snprintf(value, sizeof(value), "%s", tr("Reinicie o KPlayer"));
+      else if (update_status_code == 4) snprintf(value, sizeof(value), "%s", tr("Erro; consulte log.txt"));
+      else snprintf(value, sizeof(value), "%s", tr("B Verificar"));
+      pthread_mutex_unlock(&update_mutex);
       break;
     default:
       snprintf(value, sizeof(value), "%s", tr("Abrir"));
@@ -778,6 +845,9 @@ static void change_option(int dir) {
     apply_theme((theme_index + dir + THEME_COUNT) % THEME_COUNT);
     save_settings();
     break;
+  case 10:
+    update_start();
+    break;
   }
   menu_dirty = true;
 }
@@ -804,6 +874,10 @@ static void open_options(void) {
   option = 0;
 }
 static void key(SDL_Keycode k, bool repeat) {
+  if (update_is_busy()) {
+    if (!repeat) notify(tr("Aguarde..."));
+    return;
+  }
   if (radio_play_is_busy()) {
     if (mode == 7 && k != SDLK_ESCAPE && k != SDLK_F1 && k != SDLK_TAB)
       radio_key(k, repeat);
@@ -852,12 +926,12 @@ static void key(SDL_Keycode k, bool repeat) {
     if ((k == SDLK_BACKSPACE || k == SDLK_m) && !repeat)
       mode = return_mode;
     else if (k == SDLK_UP)
-      option = (option + 9) % 10;
+      option = (option + 10) % 11;
     else if (k == SDLK_DOWN)
-      option = (option + 1) % 10;
-    else if (k == SDLK_LEFT)
+      option = (option + 1) % 11;
+    else if (k == SDLK_LEFT && option != 10)
       change_option(-1);
-    else if (k == SDLK_RIGHT || (k == SDLK_RETURN && !repeat))
+    else if ((k == SDLK_RIGHT && option != 10) || (k == SDLK_RETURN && !repeat))
       change_option(1);
     return;
   }
@@ -1220,7 +1294,7 @@ int main(int argc, char **argv) {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_QUIT) {
-        if (!radio_play_is_busy()) running = 0;
+        if (!radio_play_is_busy() && !update_is_busy()) running = 0;
       }
       else if (e.type == SDL_KEYDOWN)
         key(e.key.keysym.sym, e.key.repeat != 0);

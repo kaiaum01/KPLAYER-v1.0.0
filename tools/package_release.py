@@ -2,6 +2,7 @@
 """Build the install ZIP from an explicit runtime allowlist; no personal media."""
 from pathlib import Path
 import hashlib
+import json
 import zipfile
 
 BASE = Path(__file__).resolve().parents[1]
@@ -13,6 +14,7 @@ runtime = BASE / "ports" / "kplayer"
 files = [
     BASE / "ports" / "KPlayer (Beta).sh",
     runtime / "kplayer", runtime / "kplayer.gptk",
+    runtime / "updater.py",
     runtime / "fonts" / "Interface.ttf", runtime / "fonts" / "Bold.ttf",
     runtime / "lib" / "libvlc.so.5", runtime / "lib" / "libvlccore.so.9",
     runtime / "midias" / "README.txt",
@@ -34,6 +36,12 @@ with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as out
         out.write(path, path.relative_to(BASE / "ports").as_posix())
     out.write(BASE / "docs" / "INSTALL.md", "README_INSTALL.md")
     out.write(BASE / "LICENSE", "LICENSE")
+    out.writestr("kplayer/update-manifest.json", json.dumps({
+        "schema": 1, "version": VERSION,
+        "update_files": ["kplayer/kplayer", "kplayer/kplayer.gptk",
+                         "kplayer/lib/libvlc.so.5", "kplayer/lib/libvlccore.so.9",
+                         "kplayer/fonts/Interface.ttf", "kplayer/fonts/Bold.ttf"],
+    }))
     out.writestr("SOURCE.txt", (
         "KPlayer v1.0.0 — corresponding source\n"
         "The source is distributed in this release's repository/tag.\n"

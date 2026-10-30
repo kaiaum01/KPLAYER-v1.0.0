@@ -7,6 +7,13 @@ typedef struct {
   const char *pt, *en, *es;
 } Translation;
 static const Translation translations[] = {
+    {"Atualização", "Update", "Actualización"},
+    {"Aguarde...", "Please wait...", "Espere..."},
+    {"B Atualizar", "B Install", "B Actualizar"},
+    {"Versão atual", "Up to date", "Actualizado"},
+    {"Reinicie o KPlayer", "Restart KPlayer", "Reinicie KPlayer"},
+    {"Erro; consulte log.txt", "Error; see log.txt", "Error; vea log.txt"},
+    {"B Verificar", "B Check", "B Buscar"},
     {"Tema", "Theme", "Tema"},
     {"Preto e verde", "Black and green", "Negro y verde"},
     {"Preto e branco", "Black and white", "Negro y blanco"},

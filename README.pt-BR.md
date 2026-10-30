@@ -7,8 +7,10 @@ Interface 640 × 480 para controles físicos no dArkOS / PortMaster.
 
 > **Candidata à versão final:** a correção do rádio foi relatada como funcional
 > no R36S. Os temas, a barra de carregamento e a compilação ARM64 da 1.0.0 ainda
-> precisam ser testados no aparelho. A atualização automática **não está
-> implementada**. O código Android é experimental e não integra este lançamento.
+> precisam ser testados no aparelho. A atualização pelo GitHub é experimental,
+> requer Python 3 e ainda não foi testada no R36S. Consulte
+> [limitações do atualizador](ATUALIZADOR-EXPERIMENTAL.md).
+> O código Android é experimental e não integra este lançamento.
 
 ## Prévias
 

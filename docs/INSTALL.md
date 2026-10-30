@@ -16,7 +16,8 @@ opcional para capas. Outros sistemas não foram validados.
 
 Antes de atualizar, faça backup de músicas, rádios e dos arquivos
 `settings.cfg`, `preferences.cfg` e `favorites.cfg`. Não substitua arquivos
-pessoais sem conferir. O auto-update ainda não foi implementado. Se houver
+pessoais sem conferir. O auto-update é experimental; veja
+`ATUALIZADOR-EXPERIMENTAL.md` no código-fonte. Se houver
 erro, procure `ports/kplayer/log.txt`.
 
 ## English
@@ -25,4 +26,4 @@ Run the R36S GitHub Actions workflow, download its artifact, extract
 `KPlayer-v1.0.0-R36S.zip` and copy `KPlayer (Beta).sh` and `kplayer/` to
 `ports/`. Select language with B. R36S ARM64 with dArkOS/PortMaster, SDL2,
 ALSA and matching VLC plugins are required. Back up media, radio playlists and
-settings before updating. Auto-update is not implemented.
+settings before updating. Auto-update is experimental and requires Python 3.

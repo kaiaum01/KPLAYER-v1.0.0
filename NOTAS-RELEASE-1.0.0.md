@@ -10,4 +10,5 @@ mídias, rádios e configurações antes de atualizar.
 
 Estado antes da publicação: a correção do rádio foi relatada funcionando no
 R36S; os temas, a barra de carregamento e a compilação ARM64 desta versão
-precisam de teste. O atualizador automático não está implementado.
+precisam de teste. O atualizador automático é experimental, depende de Python 3,
+e ainda não foi testado no R36S; consulte ATUALIZADOR-EXPERIMENTAL.md.

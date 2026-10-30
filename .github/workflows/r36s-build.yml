@@ -35,6 +35,8 @@ jobs:
             -I source/include source/kplayer.c -o ports/kplayer/kplayer \
             -ldl -lpthread -lm
           file ports/kplayer/kplayer
+      - name: Testar atualizador simulado
+        run: python3 -m unittest discover -s tests -p test_updater.py -v
       - name: Criar pacote instalável
         run: python3 tools/package_release.py
       - name: Disponibilizar pacote e checksum
